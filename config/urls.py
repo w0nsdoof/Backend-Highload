@@ -6,12 +6,16 @@ from django.urls import path, include
 from apps.products.urls import router as products_router
 from apps.carts.urls import router as carts_router
 from apps.orders.urls import router as orders_router
+from apps.wishlists.urls import router as wishlists_router
+from apps.reviews.urls import router as reviews_router
 
 router = DefaultRouter()
 
 router.registry.extend(products_router.registry)
 router.registry.extend(carts_router.registry)
 router.registry.extend(orders_router.registry)
+router.registry.extend(wishlists_router.registry)
+router.registry.extend(reviews_router.registry)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

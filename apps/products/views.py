@@ -1,21 +1,15 @@
 from rest_framework import viewsets,permissions,status
 
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
-
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10 
-    page_size_query_param = 'page_size'  
-    max_page_size = 100  
-
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    pagination_class = StandardResultsSetPagination
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = LimitOffsetPagination
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -58,7 +52,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
