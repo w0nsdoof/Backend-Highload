@@ -1,131 +1,129 @@
-from rest_framework import status, permissions
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from django.core.mail import send_mail
-from django.conf import settings
+from django.db import transaction
+from django.core.exceptions import ValidationError
 
-from apps.products.models import Product
 from .models import Order, OrderItem
-from .serializers import (
-    OrderSerializer, OrderDetailSerializer,
-    AddProductSerializer, RemoveProductSerializer,
-)
+from .serializers import OrderSerializer, OrderItemSerializer
+from apps.carts.models import ShoppingCart, CartItem
+from apps.products.models import Product
 
-class OrdersView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    Comprehensive order management viewset
+    
+    Supports:
+    - Create order from cart
+    - List user orders
+    - Retrieve specific order
+    - Cancel pending orders
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        orders = Order.objects.filter(customer=request.user)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
 
-    def post(self, request):
-        print(Order.STATUS_CHOICES.CREATED)
-        order = Order.objects.create(
-            customer=request.user, 
-            status=Order.STATUS_CHOICES.CREATED, 
-            total_amount=0)
-        return Response({"order_id": order.id}, status=status.HTTP_201_CREATED)
-
-class OrderDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, pk):
-        order = Order.objects.get(pk=pk, customer=request.user)
-        serializer = OrderDetailSerializer(order)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-class OrderAddProductView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, pk):
-        serializer = AddProductSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+    @action(detail=False, methods=['POST'])
+    @transaction.atomic
+    def create_from_cart(self, request):
         try:
-            order = Order.objects.get(pk=pk, customer=request.user)
-        except Order.DoesNotExist:
-            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+            cart, _ = ShoppingCart.objects.get_or_create(user=request.user)
 
-        try:
-            product = Product.objects.get(pk=serializer.validated_data['product_id'])
-        except Product.DoesNotExist:
-            return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+            if not cart.cart_items.exists():
+                return Response(
+                    {'error': 'Cart is empty'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        order.add_product(product, serializer.validated_data['quantity'])
-        
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            order = Order.objects.create(
+                user=request.user,
+                order_status='pending'
+            )
 
-class OrderRemoveProductView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+            total_amount = 0
 
-    def post(self, request, pk):
-        serializer = RemoveProductSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = Order.objects.get(pk=pk, customer=request.user)
-        product = Product.objects.get(pk=serializer.validated_data['product_id'])
-        order.remove_product(product, serializer.validated_data['quantity'])
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            for cart_item in cart.cart_items.all():
+                product = cart_item.product
+                if cart_item.quantity > product.stock_quantity:
+                    raise ValidationError(
+                        f'Insufficient stock for {product.name}. '
+                        f'Available: {product.stock_quantity}, Requested: {cart_item.quantity}'
+                    )
 
-class OrderRemoveAllProductView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+                order_item = OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=cart_item.quantity,
+                    price=product.price
+                )
 
-    def post(self, request, pk):
-        order = Order.objects.get(pk=pk, customer=request.user)
-        order.remove_all_products()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+                product.stock_quantity -= cart_item.quantity
+                product.save()
 
-class OrderPaymentView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+                total_amount += order_item.quantity * order_item.price
 
-    def post(self, request, pk):
-        order = Order.objects.get(pk=pk, customer=request.user)
-        order.process_payment()
-        # TODO: Should return some info
-        # Mb write it in payment app
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            order.total_amount = total_amount
+            order.save()
 
-class OrderFinishView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+            cart.cart_items.all().delete()
 
-    def post(self, request, pk):
-        order = Order.objects.get(pk=pk, customer=request.user)
-        
-        order.finish_order()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            serializer = self.get_serializer(order)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class OrderCancelView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def put(self, request, pk):
-        order = Order.objects.get(pk=pk, customer=request.user)
-        order.cancel_order()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class OrderFinishViewEmailConf(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, pk):
-        try:
-            order = Order.objects.get(pk=pk, customer=request.user)
-        except Order.DoesNotExist:
-            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        user_email = order.customer.email  
-        order_id = order.id  
-
-        try:
-            send_mail(
-                'Order Confirmation',
-                f'Your order with ID {order_id} has been successfully completed.',
-                settings.EMAIL_HOST_USER,
-                [user_email],
-                fail_silently=False,
+        except ValidationError as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            return Response({"detail": "Failed to send confirmation email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # TODO: Log error
+            return Response(
+                {'error': 'Unexpected error occurred while creating order'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-        order.finish_order()
+    @action(detail=True, methods=['POST'])
+    def cancel_order(self, request, pk=None):
+        """
+        Cancel a pending order and restore product stocks
+        """
+        try:
+            order = self.get_object()
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            if order.order_status != 'pending':
+                return Response(
+                    {'error': 'Only pending orders can be cancelled'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            for order_item in order.items.all():
+                product = order_item.product
+                product.stock_quantity += order_item.quantity
+                product.save()
+
+            order.order_status = 'cancelled'
+            order.save()
+
+            serializer = self.get_serializer(order)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response(
+                {'error': 'Error cancelling order'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['GET'])
+    def order_summary(self, request):
+        orders = self.get_queryset()
+        summary = {
+            'total_orders': orders.count(),
+            'pending_orders': orders.filter(order_status='pending').count(),
+            'completed_orders': orders.filter(order_status='delivered').count(),
+            'total_spent': sum(order.total_amount for order in orders)
+        }
+        return Response(summary)

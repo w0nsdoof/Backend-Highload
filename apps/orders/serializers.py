@@ -1,41 +1,47 @@
 from rest_framework import serializers
 
 from apps.products.serializers import ProductSerializer
-from apps.authentication.serializers import UserSerializer
 
-from .models import OrderItem, Order
+from .models import Order, OrderItem
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
+    subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'quantity', 'price']
+        fields = [
+            'id', 
+            'product', 
+            'quantity', 
+            'price', 
+            'subtotal',
+            'created_at', 
+            'updated_at'
+        ]
+        read_only_fields = fields
+
+    def get_subtotal(self, obj):
+        return obj.quantity * obj.price
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    user = serializers.StringRelatedField()
+    total_items = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'order_status', 'total_amount', 'items', 'created_at', 'updated_at']
-          
-class OrderDetailSerializer(serializers.ModelSerializer):
-    customer = UserSerializer()
-    
-    class Meta:
-        model = Order
-        fields = '__all__'
+        fields = [
+            'id', 
+            'user', 
+            'order_status', 
+            'total_amount', 
+            'items', 
+            'total_items',
+            'created_at', 
+            'updated_at'
+        ]
+        read_only_fields = fields
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = '__all__'
+    def get_total_items(self, obj):
+        return sum(item.quantity for item in obj.items.all())
 
-class RemoveProductSerializer(serializers.Serializer):
-    product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default=1)
-    
-class AddProductSerializer(serializers.Serializer):
-    product_id = serializers.IntegerField()
-    quantity = serializers.IntegerField(default=1)
