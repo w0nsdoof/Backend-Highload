@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.products.serializers import ProductSerializer
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
@@ -45,3 +45,8 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_total_items(self, obj):
         return sum(item.quantity for item in obj.items.all())
 
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at', 'status', 'unique_token', 'expiration_time']
