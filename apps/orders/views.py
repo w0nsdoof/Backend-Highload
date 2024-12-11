@@ -12,7 +12,7 @@ from django.utils.timezone import now
 from apps.carts.models import ShoppingCart, CartItem
 from apps.products.models import Product
 from .models import Order, OrderItem, Payment
-from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer
+from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer, PaymentConfirmationSerializer
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -113,7 +113,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         except Exception as e:
             # TODO: Log error
             return Response(
-                {'error': 'Unexpected error occurred while creating order'}, 
+                {'error': 'Unexpected error occurred while creating order',
+                 "log": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -190,3 +191,75 @@ class OrderViewSet(viewsets.ModelViewSet):
             'total_spent': sum(order.total_amount for order in orders)
         }
         return Response(summary)
+
+class PaymentViewSet(viewsets.ViewSet):
+    """
+    A ViewSet to handle payments for orders, including:
+    - Generating payment links
+    - Sending payment links via email
+    - Confirming payments
+    - Marking payments as failed after expiration
+    """
+
+    def create(self, request, *args, **kwargs):
+        order_id = kwargs.get('order_id')
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        if hasattr(order, 'payment'):
+            return Response(
+                {"error": "Payment already exists for this order."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        payment = Payment.objects.create(
+            order=order,
+            amount=order.total_amount,
+            payment_method='Credit Card', #TODO: give options
+        )
+
+        unique_url = f"{request.scheme}://{request.get_host()}/api/payment/{payment.unique_token}/"
+        
+        email = EmailMessage(
+            subject="Complete Your Payment",
+            body=f"Click the link to complete your payment: {unique_url}",
+            to=[request.user.email]
+        )
+        email.send()
+
+        serializer = PaymentSerializer(payment)
+        return Response(
+            {"message": "Payment link sent to email.", "payment": serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=True, methods=['GET'], url_path=r'(?P<token>[^/.]+)')
+    def confirm_payment(self, request, token):
+        payment = get_object_or_404(Payment, unique_token=token)
+
+        if payment.expiration_time < now():
+            payment.status = Payment.PaymentStatus.FAILED
+            payment.save()
+            return Response({"error": "Payment link expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        payment.status = Payment.PaymentStatus.COMPLETED
+        payment.save()
+        payment.order.order_status = 'completed'
+        payment.order.save()
+
+        return Response({"message": "Payment completed successfully."}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def check_payments(self, request):
+        expired_payments = Payment.objects.filter(
+            status=Payment.PaymentStatus.PENDING,
+            expiration_time__lt=now()
+        )
+
+        for payment in expired_payments:
+            payment.status = Payment.PaymentStatus.FAILED
+            payment.save()
+
+        return Response(
+            {"message": f"{expired_payments.count()} payments marked as failed."},
+            status=status.HTTP_200_OK
+        )

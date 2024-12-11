@@ -94,6 +94,9 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
         
 class Payment(models.Model):
+    def default_expiration_time():
+        return now() + timedelta(minutes=5)
+    
     class PaymentMethod(models.TextChoices):
         CREDIT_CARD = 'Credit Card', 'Credit Card'
         PAYPAL = 'PayPal', 'PayPal'
@@ -112,4 +115,5 @@ class Payment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     unique_token = models.UUIDField(default=uuid.uuid4, unique=True)
-    expiration_time = models.DateTimeField(default=lambda: now() + timedelta(minutes=5))
+    expiration_time = models.DateTimeField(default=default_expiration_time)
+    
