@@ -1,22 +1,13 @@
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from django.urls import path
-from .views import OrderViewSet,PaymentViewSet
+from .views import OrderViewSet, PaymentViewSet
 
 router = DefaultRouter()
-router.register(r'orders', OrderViewSet,basename='order')
-router.register(r'payments', PaymentViewSet,basename='payment')
-
-urlpatterns = router.urls
-
-payment_list = PaymentViewSet.as_view({
-    'post': 'create',
-})
-
-payment_detail = PaymentViewSet.as_view({
-    'get': 'confirm_payment',
-})
+router.register(r'orders', OrderViewSet, basename='order')
+router.register(r'payments', PaymentViewSet, basename='payment')
 
 urlpatterns = [
-    path('payment/<int:order_id>/', payment_list, name='payment-create'),
-    path('payment/<uuid:token>/', payment_detail, name='payment-confirm'),
+    path('', include(router.urls)),
+    path('payment/<int:order_id>/', PaymentViewSet.as_view({'post': 'create'}), name='payment-create'),
+    path('payment/<uuid:token>/', PaymentViewSet.as_view({'get': 'confirm_payment'}), name='payment-confirm'),
 ]
