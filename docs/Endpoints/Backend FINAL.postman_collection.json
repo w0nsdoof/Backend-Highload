@@ -1,0 +1,2306 @@
+{
+	"info": {
+		"_postman_id": "6b0490bc-0975-464c-9b1c-3e5853b08b1d",
+		"name": "Backend FINAL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32742670"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const randomId = Math.random().toString(36).substring(2, 10);\r",
+									"pm.environment.set(\"email\", `${randomId}@example.com`);\r",
+									"pm.environment.set(\"password\", `password${randomId}`);\r",
+									"pm.environment.set(\"name\", `Name-${randomId}`);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseData = pm.response.json();\r",
+									"pm.environment.set(\"activationToken\", responseData.user.token);\r",
+									"\r",
+									"pm.test('response is ok', () => {\r",
+									"\tpm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"pm.test('response should have json with activationToken', () => {\r",
+									"\tconst response = pm.response.json();\r",
+									"\r",
+									"\t// Check that field in response\r",
+									"\tpm.expect(response.user.token).to.be.string;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\" : \"{{name}}\",\r\n    \"email\" : \"{{email}}\",\r\n    \"password\" : \"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registers a new user in a system"
+					},
+					"response": [
+						{
+							"name": "Register",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\" : \"{{name}}\",\r\n    \"email\" : \"{{email}}\",\r\n    \"password\" : \"{{password}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/auth/register",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:24:32 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "110"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"User registered successfully!\",\n    \"user\": {\n        \"username\": \"Name-qlbcav0g\",\n        \"email\": \"qlbcav0g@example.com\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const res = pm.response.json();\r",
+									"\r",
+									"pm.test('response is ok', () => {\r",
+									"\tpm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const access_token = res.access\r",
+									"const refresh_token = res.refresh\r",
+									"\r",
+									"pm.test('response should have json with auth token', () => {\r",
+									"\tpm.expect(access_token).to.be.string;\r",
+									"});\r",
+									"\r",
+									"pm.environment.set(\"access_token\", access_token);\r",
+									"pm.environment.set(\"refresh_token\", refresh_token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"{{email}}\",\r\n    \"password\" : \"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticates a user and returns access and refresh tokens"
+					},
+					"response": [
+						{
+							"name": "Login",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\" : \"a_zhumabayev@kbtu.kz\",\r\n    \"password\" : \"5VHsMAKG\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/auth/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:09:08 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "483"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczMzk1MTM0OCwiaWF0IjoxNzMzOTQ3NzQ4LCJqdGkiOiIzOThmNTg0ZTUwM2I0ZGQ5YmYxMDVlN2VmODQyM2M1NyIsInVzZXJfaWQiOjF9.D0vzF32_slFJgoMACHSQUK7Ias2pzUn0c1f-PVlMm-0\",\n    \"access\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MDM0MTQ4LCJpYXQiOjE3MzM5NDc3NDgsImp0aSI6ImNmYTkwMjQxYjVlNTQ2NDU5ZjZlMjA1Mjc1MTg5NjMzIiwidXNlcl9pZCI6MX0.4D-BdfoKn2bXjiowoSohmKGjZRuV6_-wScgWtL4dNcw\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Forgot Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response is ok', () => {\r",
+									"\tpm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\" : \"{{email}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/forgot_password/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"forgot_password",
+								""
+							]
+						},
+						"description": "# Sends a password reset link via email:\n\n**Reset Password**\n\n- **Endpoint**: `POST /auth/reset_password//`\n    \n- **Description**: A link from email from forgot password method\n    \n- **Request Body**:\n    \n    ``` json\n    {\n      \"password\": \"GENERATE_RANDOM\" // Generates random password sent in email\n      // Could be custom one that is not == GENERATE_RANDOM\n    }\n    \n     ```\n    \n- **Response Example**:\n    \n    ``` json\n    {\n       \"message\": \"Password reset successful.\"\n    }\n    \n     ```\n    \n- Your new password is: 5VHsMAKG"
+					},
+					"response": [
+						{
+							"name": "Forgot Password",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\" : \"{{email}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/auth/forgot_password/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"auth",
+										"forgot_password",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:24:46 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "40"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Password reset email sent.\"\n}"
+						}
+					]
+				}
+			],
+			"description": "API requests for Authentication system\n\nSome Type of automatization by env variables set as post-response scripts."
+		},
+		{
+			"name": "Carts",
+			"item": [
+				{
+					"name": "Create Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/carts/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								""
+							]
+						},
+						"description": "If carts exists, it retrieves data as **/my_cart/** requests\n\nIf it doesn't exists, it creates a empty one"
+					},
+					"response": [
+						{
+							"name": "Create Cart",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/carts/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"carts",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:23:53 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "151"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 1,\n    \"user\": 1,\n    \"cart_items\": [],\n    \"total_items\": 0,\n    \"total_price\": 0,\n    \"created_at\": \"2024-12-10T16:41:33.061797Z\",\n    \"updated_at\": \"2024-12-10T16:45:16.417171Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Add Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract cart_item_id\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const cartItemId = jsonData.id;\r",
+									"\r",
+									"    pm.environment.set(\"cart_item_id\", cartItemId);\r",
+									"    console.log(\"Cart Item ID:\", cartItemId);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_id\": 1,\r\n  \"quantity\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/carts/add_item/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								"add_item",
+								""
+							]
+						},
+						"description": "As name speaks, it adds a CartItem to Cart by inputs underneath"
+					},
+					"response": [
+						{
+							"name": "Add Item",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"product_id\": 1,\r\n  \"quantity\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/carts/add_item/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"carts",
+										"add_item",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:24:01 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "322"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 9,\n    \"product\": {\n        \"id\": 1,\n        \"name\": \"Cola 2l\",\n        \"description\": \"asdasd\",\n        \"price\": \"800.00\",\n        \"stock_quantity\": 4,\n        \"category\": null,\n        \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n        \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n    },\n    \"quantity\": 4,\n    \"subtotal\": 3200,\n    \"created_at\": \"2024-12-11T20:23:58.788680Z\",\n    \"updated_at\": \"2024-12-11T20:24:01.251697Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Item",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"cart_item_id\": {{cart_item_id}},\r\n  \"quantity\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/carts/update_item/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								"update_item",
+								""
+							]
+						},
+						"description": "Updates CartItem: only specific interactions if quantity is set to 0, it removes it from cart"
+					},
+					"response": [
+						{
+							"name": "Update Item",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"cart_item_id\": {{cart_item_id}},\r\n  \"quantity\": 5\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/carts/update_item/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"carts",
+										"update_item",
+										""
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:24:09 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "34"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Only 4 items available\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"cart_item_id\": {{cart_item_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/carts/remove_item/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								"remove_item",
+								""
+							]
+						},
+						"description": "Removes CartItem from Cart. Id is lost, new created on same product_id creates new id fro cartitem"
+					},
+					"response": [
+						{
+							"name": "Delete Item",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"cart_item_id\": {{cart_item_id}}\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/carts/remove_item/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"carts",
+										"remove_item",
+										""
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:23:39 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "DELETE, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "31"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Cart item not found\"\n}"
+						}
+					]
+				}
+			],
+			"description": "ShoppingCart endpoints: carts unique by users, they're able to do CRUD on items in it  \nSome Type of automatization by env variables set as post-response scripts.",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{access_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"product\" : 1,\r\n    \"rating\" : 9\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/payment/{{order_id}}/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"payment",
+										"{{order_id}}",
+										""
+									],
+									"query": [
+										{
+											"key": "order",
+											"value": null,
+											"disabled": true
+										}
+									]
+								},
+								"description": "Almost useless request, cause automatically used when creating order. But i'm keeping for no reason"
+							},
+							"response": [
+								{
+									"name": "Create",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"product\" : 1,\r\n    \"rating\" : 9\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{BASE_URL}}/api/payment/{{order_id}}/",
+											"host": [
+												"{{BASE_URL}}"
+											],
+											"path": [
+												"api",
+												"payment",
+												"{{order_id}}",
+												""
+											],
+											"query": [
+												{
+													"key": "order",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Wed, 11 Dec 2024 20:15:41 GMT"
+										},
+										{
+											"key": "Server",
+											"value": "WSGIServer/0.2 CPython/3.12.3"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Vary",
+											"value": "Accept"
+										},
+										{
+											"key": "Allow",
+											"value": "POST, OPTIONS"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Content-Length",
+											"value": "50"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "same-origin"
+										},
+										{
+											"key": "Cross-Origin-Opener-Policy",
+											"value": "same-origin"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"error\": \"Payment already exists for this order.\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Retrieve",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/payment/check_payments/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"payment",
+										"check_payments",
+										""
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								},
+								"description": "Check and mark expired payments as failed."
+							},
+							"response": [
+								{
+									"name": "Retrieve",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{BASE_URL}}/api/payment/check_payments/",
+											"host": [
+												"{{BASE_URL}}"
+											],
+											"path": [
+												"api",
+												"payment",
+												"check_payments",
+												""
+											],
+											"query": [
+												{
+													"key": "",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Wed, 11 Dec 2024 20:15:47 GMT"
+										},
+										{
+											"key": "Server",
+											"value": "WSGIServer/0.2 CPython/3.12.3"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Vary",
+											"value": "Accept"
+										},
+										{
+											"key": "Allow",
+											"value": "GET, HEAD, OPTIONS"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Content-Length",
+											"value": "42"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "same-origin"
+										},
+										{
+											"key": "Cross-Origin-Opener-Policy",
+											"value": "same-origin"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"0 payments marked as failed.\"\n}"
+								}
+							]
+						}
+					],
+					"description": "Payments isn't really done, just a workaround with conformation (no actual money transfers, no payment gateways and etc)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Order From Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract order_id and cart_item_id\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const order_id = jsonData.order.id;\r",
+									"\r",
+									"    pm.environment.set(\"order_id\", order_id);\r",
+									"\r",
+									"    console.log(\"Order ID:\", order_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/create_from_cart/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"create_from_cart",
+								""
+							]
+						},
+						"description": "Creates a Order from chart. Transfers Items from Cart to Items of Order. Doesn't create order if cart empty"
+					},
+					"response": [
+						{
+							"name": "Create Order From CART",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/orders/create_from_cart/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"create_from_cart",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:14:28 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "617"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"order\": {\n        \"id\": 6,\n        \"user\": 1,\n        \"order_status\": \"pending\",\n        \"total_amount\": \"1600.00\",\n        \"items\": [\n            {\n                \"id\": 6,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 2,\n                \"price\": \"800.00\",\n                \"subtotal\": 1600,\n                \"created_at\": \"2024-12-11T20:14:24.852358Z\",\n                \"updated_at\": \"2024-12-11T20:14:24.852371Z\"\n            }\n        ],\n        \"total_items\": 2,\n        \"created_at\": \"2024-12-11T20:14:24.851282Z\",\n        \"updated_at\": \"2024-12-11T20:14:24.852996Z\"\n    },\n    \"payment_url\": \"http://127.0.0.1:8000/api/payment/1fe5317a-7be5-4ef3-8ae8-ac7d95e500b6/\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								""
+							]
+						},
+						"description": "Retrieves information about all orders done by request user. A Link standby in request used just for development sake, so there's no need to check inboxes and wait for them. They still going to emails of users."
+					},
+					"response": [
+						{
+							"name": "Get Orders",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/orders/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:14:40 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2609"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 6,\n        \"user\": 1,\n        \"order_status\": \"pending\",\n        \"total_amount\": \"1600.00\",\n        \"items\": [\n            {\n                \"id\": 6,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 2,\n                \"price\": \"800.00\",\n                \"subtotal\": 1600,\n                \"created_at\": \"2024-12-11T20:14:24.852358Z\",\n                \"updated_at\": \"2024-12-11T20:14:24.852371Z\"\n            }\n        ],\n        \"total_items\": 2,\n        \"created_at\": \"2024-12-11T20:14:24.851282Z\",\n        \"updated_at\": \"2024-12-11T20:14:24.852996Z\"\n    },\n    {\n        \"id\": 5,\n        \"user\": 1,\n        \"order_status\": \"cancelled\",\n        \"total_amount\": \"4000.00\",\n        \"items\": [\n            {\n                \"id\": 5,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 5,\n                \"price\": \"800.00\",\n                \"subtotal\": 4000,\n                \"created_at\": \"2024-12-11T20:12:13.583056Z\",\n                \"updated_at\": \"2024-12-11T20:12:13.583068Z\"\n            }\n        ],\n        \"total_items\": 5,\n        \"created_at\": \"2024-12-11T20:12:13.581404Z\",\n        \"updated_at\": \"2024-12-11T20:14:12.855981Z\"\n    },\n    {\n        \"id\": 4,\n        \"user\": 1,\n        \"order_status\": \"completed\",\n        \"total_amount\": \"1600.00\",\n        \"items\": [\n            {\n                \"id\": 4,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 2,\n                \"price\": \"800.00\",\n                \"subtotal\": 1600,\n                \"created_at\": \"2024-12-11T18:03:08.750016Z\",\n                \"updated_at\": \"2024-12-11T18:03:08.750027Z\"\n            }\n        ],\n        \"total_items\": 2,\n        \"created_at\": \"2024-12-11T18:03:08.749049Z\",\n        \"updated_at\": \"2024-12-11T18:03:38.253833Z\"\n    },\n    {\n        \"id\": 3,\n        \"user\": 1,\n        \"order_status\": \"completed\",\n        \"total_amount\": \"4000.00\",\n        \"items\": [\n            {\n                \"id\": 3,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 5,\n                \"price\": \"800.00\",\n                \"subtotal\": 4000,\n                \"created_at\": \"2024-12-11T17:46:20.040002Z\",\n                \"updated_at\": \"2024-12-11T17:46:20.040016Z\"\n            }\n        ],\n        \"total_items\": 5,\n        \"created_at\": \"2024-12-11T17:46:20.038856Z\",\n        \"updated_at\": \"2024-12-11T17:46:53.940820Z\"\n    },\n    {\n        \"id\": 1,\n        \"user\": 1,\n        \"order_status\": \"cancelled\",\n        \"total_amount\": \"1600.00\",\n        \"items\": [\n            {\n                \"id\": 1,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 4,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:14:24.852625Z\"\n                },\n                \"quantity\": 2,\n                \"price\": \"800.00\",\n                \"subtotal\": 1600,\n                \"created_at\": \"2024-12-10T17:17:41.508680Z\",\n                \"updated_at\": \"2024-12-10T17:17:41.508695Z\"\n            }\n        ],\n        \"total_items\": 2,\n        \"created_at\": \"2024-12-10T17:17:41.507384Z\",\n        \"updated_at\": \"2024-12-10T17:19:39.925867Z\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Cancel Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/orders/1/cancel_order/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"cancel_order",
+								""
+							]
+						},
+						"description": "Cancels Order if it is still Pending"
+					},
+					"response": [
+						{
+							"name": "Cancel Order",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/orders/{{order_id}}/cancel_order/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"orders",
+										"{{order_id}}",
+										"cancel_order",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:14:12 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "521"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 5,\n    \"user\": 1,\n    \"order_status\": \"cancelled\",\n    \"total_amount\": \"4000.00\",\n    \"items\": [\n        {\n            \"id\": 5,\n            \"product\": {\n                \"id\": 1,\n                \"name\": \"Cola 2l\",\n                \"description\": \"asdasd\",\n                \"price\": \"800.00\",\n                \"stock_quantity\": 6,\n                \"category\": null,\n                \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                \"updated_at\": \"2024-12-11T20:14:12.851745Z\"\n            },\n            \"quantity\": 5,\n            \"price\": \"800.00\",\n            \"subtotal\": 4000,\n            \"created_at\": \"2024-12-11T20:12:13.583056Z\",\n            \"updated_at\": \"2024-12-11T20:12:13.583068Z\"\n        }\n    ],\n    \"total_items\": 5,\n    \"created_at\": \"2024-12-11T20:12:13.581404Z\",\n    \"updated_at\": \"2024-12-11T20:14:12.855981Z\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Request for orders related endpoints (orders + payments to it)\n\nSome Type of automatization by env variables set as post-response scripts.",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{access_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Wishlist",
+			"item": [
+				{
+					"name": "Retrieve",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist",
+								""
+							]
+						},
+						"description": "Retrieves all items"
+					},
+					"response": [
+						{
+							"name": "Retrieve",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/wishlist/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"wishlist",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:27:05 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "364"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 1,\n        \"wishlist_items\": [\n            {\n                \"id\": 1,\n                \"product\": {\n                    \"id\": 1,\n                    \"name\": \"Cola 2l\",\n                    \"description\": \"asdasd\",\n                    \"price\": \"800.00\",\n                    \"stock_quantity\": 6,\n                    \"category\": null,\n                    \"created_at\": \"2024-12-10T16:46:44.877281Z\",\n                    \"updated_at\": \"2024-12-11T20:24:23.947666Z\"\n                },\n                \"created_at\": \"2024-12-10T22:08:53.207900Z\"\n            }\n        ],\n        \"created_at\": \"2024-12-10T22:08:43.378807Z\",\n        \"updated_at\": \"2024-12-10T22:08:43.378825Z\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Add",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\" : 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist/add_item/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist",
+								"add_item",
+								""
+							]
+						},
+						"description": "Add items"
+					},
+					"response": [
+						{
+							"name": "Add",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"product_id\" : 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/wishlist/add_item/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"wishlist",
+										"add_item",
+										""
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:27:11 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "POST, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "39"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Product already in wishlist\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\" : 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/wishlist/remove_item/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"wishlist",
+								"remove_item",
+								""
+							]
+						},
+						"description": "Delete Items"
+					},
+					"response": [
+						{
+							"name": "Delete",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"product_id\" : 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/wishlist/remove_item/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"wishlist",
+										"remove_item",
+										""
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:27:16 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "DELETE, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "0"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			],
+			"description": "As carts, unique per user. Just a list of product_ids as list",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{access_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Review",
+			"item": [
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"rating\" : 7,\r\n  \"comment\" : \"{{$randomCatchPhrase}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}",
+								"reviews",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"rating\" : 7,\r\n  \"comment\" : \"{{$randomCatchPhrase}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"products",
+										"{{product_id}}",
+										"reviews",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:29:16 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "176"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 9,\n    \"product\": \"1\",\n    \"user\": 1,\n    \"rating\": 7,\n    \"comment\": \"Persistent analyzing infrastructure\",\n    \"created_at\": \"2024-12-11T20:29:16.197772Z\",\n    \"updated_at\": \"2024-12-11T20:29:16.197806Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Retrieve",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract review_id\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const reviewId = jsonData[0].id; // Assuming the first object in the array is the desired one\r",
+									"\r",
+									"    pm.environment.set(\"review_id\", reviewId);\r",
+									"    console.log(\"Review ID:\", reviewId);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}",
+								"reviews",
+								""
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Retrieve",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"products",
+										"{{product_id}}",
+										"reviews",
+										""
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:29:36 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "176"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"id\": 9,\n        \"product\": 1,\n        \"user\": 1,\n        \"rating\": 7,\n        \"comment\": \"Persistent analyzing infrastructure\",\n        \"created_at\": \"2024-12-11T20:29:16.197772Z\",\n        \"updated_at\": \"2024-12-11T20:29:16.197806Z\"\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"rating\" : 2,\r\n  \"comment\" : \"{{$randomCatchPhrase}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/{{review_id}}/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}",
+								"reviews",
+								"{{review_id}}",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"rating\" : 2,\r\n  \"comment\" : \"{{$randomCatchPhrase}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/{{review_id}}/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"products",
+										"{{product_id}}",
+										"reviews",
+										"{{review_id}}",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:29:48 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, PUT, PATCH, DELETE, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "175"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": 9,\n    \"product\": 1,\n    \"user\": 1,\n    \"rating\": 2,\n    \"comment\": \"Configurable web-enabled application\",\n    \"created_at\": \"2024-12-11T20:29:16.197772Z\",\n    \"updated_at\": \"2024-12-11T20:29:48.518432Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/{{review_id}}/",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{product_id}}",
+								"reviews",
+								"{{review_id}}",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Delete",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/products/{{product_id}}/reviews/{{review_id}}/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"products",
+										"{{product_id}}",
+										"reviews",
+										"{{review_id}}",
+										""
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 11 Dec 2024 20:29:53 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.12.3"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, PUT, PATCH, DELETE, HEAD, OPTIONS"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "0"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			],
+			"description": "Done?",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{access_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
