@@ -1,5 +1,9 @@
-from rest_framework import viewsets,permissions,status
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+from django.conf import settings
 
+from rest_framework import viewsets,permissions,status
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -20,7 +24,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def perform_update(self, serializer):
-        serializer.save()
+        # Clear cache when product is updated
+        instance = serializer.save()
+        cache_key = f'product_{instance.pk}'
+        cache.delete(cache_key)
+        cache.delete('product_list')  # Clear the list cache as well
+        
+    def perform_destroy(self, instance):
+        # Clear cache when product is deleted
+        cache_key = f'product_{instance.pk}'
+        cache.delete(cache_key)
+        cache.delete('product_list')  # Clear the list cache as well
+        super().perform_destroy(instance)
 
     def get_queryset(self):
         queryset = Product.objects.select_related('category').prefetch_related('reviews').all()
@@ -48,6 +63,24 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
         
         return queryset.order_by('-created_at')
+    
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        # Create a cache key based on the product ID
+        cache_key = f'product_{kwargs["pk"]}'
+        
+        # Try to get the cached data
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        
+        # If no cache exists, get the data and cache it
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(cache_key, response.data, settings.CACHE_TTL)
+        return response
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
