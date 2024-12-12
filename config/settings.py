@@ -87,47 +87,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': os.getenv('POSTGRES_DB_NAME'),
-    #     'USER': os.getenv('POSTGRES_USER'),
-    #     'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-    #     'HOST': os.getenv('POSTGRES_HOST'),
-    #     'PORT': os.getenv('POSTGRES_PORT'),
-    # },
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'), 
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    },
+    'replica': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_REPLICA_HOST', 'localhost'),
+        'PORT': os.getenv('DB_REPLICA_PORT', '5433'),
     }
 }
-# # Database router to handle fallback to backup database
-# class DatabaseRouter:
-#     def db_for_read(self, model, **hints):
-#         try:
-#             # Try default database first
-#             from django.db import connections
-#             connections['default'].ensure_connection()
-#             return 'default'
-#         except Exception:
-#             # Fallback to backup if default fails
-#             return 'backup'
 
-#     def db_for_write(self, model, **hints):
-#         try:
-#             from django.db import connections
-#             connections['default'].ensure_connection() 
-#             return 'default'
-#         except Exception:
-#             return 'backup'
 
-#     def allow_relation(self, obj1, obj2, **hints):
-#         return True
 
-#     def allow_migrate(self, db, app_label, model_name=None, **hints):
-#         return True
-
-# # Register the database router
-# DATABASE_ROUTERS = ['config.settings.DatabaseRouter']
+DATABASE_ROUTERS = ['config.dbrouter.ReadWriteRouter']
 
 
 # Password validation
