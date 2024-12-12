@@ -23,7 +23,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def get_queryset(self):
-        queryset = Product.objects.all()
+        queryset = Product.objects.select_related('category').prefetch_related('reviews').all()
         
         # Filter by category
         category = self.request.query_params.get('category', None)

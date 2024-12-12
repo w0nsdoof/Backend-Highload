@@ -12,3 +12,8 @@ class Review(models.Model):
 
     class Meta:
         unique_together = ('product', 'user')
+        indexes = [
+            models.Index(fields=['product', 'user']),
+            models.Index(fields=['rating']),
+            models.Index(fields=['created_at']),
+        ]

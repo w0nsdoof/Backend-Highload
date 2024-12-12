@@ -25,7 +25,19 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'Order'
         verbose_name_plural = 'Orders'
+        indexes = [
+            models.Index(fields=['user', 'order_status'], name='order_user_status_idx'),
+            models.Index(fields=['order_status', 'created_at'], name='order_status_date_idx'),
+            models.Index(fields=['total_amount', 'created_at'], name='order_amount_date_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(total_amount__gte=0),
+                name='order_total_amount_positive'
+            )
+        ]
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
@@ -59,6 +71,26 @@ class Order(models.Model):
         cart.cart_items.all().delete()
 
         return self
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Orders'
+        indexes = [
+            models.Index(fields=['user', 'order_status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['order_status', 'created_at']),
+            models.Index(fields=['total_amount']),
+        ]
+
+    @property
+    def is_cancelable(self):
+        """Check if order can be cancelled based on status"""
+        return self.order_status in ['pending', 'processing']
+
+    @property
+    def status_display(self):
+        """Get human-readable status"""
+        return dict(self.ORDER_STATUS_CHOICES)[self.order_status]
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
@@ -80,6 +112,21 @@ class OrderItem(models.Model):
     class Meta:
         ordering = ['created_at']
         verbose_name_plural = 'Order Items'
+        indexes = [
+            models.Index(fields=['product'], name='orderitem_product_idx'),
+            models.Index(fields=['order'], name='orderitem_order_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(quantity__gt=0),
+                name='orderitem_quantity_positive'
+            ),
+            models.CheckConstraint(
+                check=models.Q(price__gt=0),
+                name='orderitem_price_positive'
+            )
+        ]
+        unique_together = [['order', 'product']]  # Prevent duplicate products in order
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name} in Order #{self.order.id}"
@@ -93,6 +140,16 @@ class OrderItem(models.Model):
         
         super().save(*args, **kwargs)
         
+    @property
+    def subtotal(self):
+        """Alias for get_item_total for consistency"""
+        return self.get_item_total()
+
+    @property
+    def is_in_stock(self):
+        """Check if product has sufficient stock"""
+        return self.product.stock_quantity >= self.quantity
+
 class Payment(models.Model):
     def default_expiration_time():
         return now() + timedelta(minutes=5)
@@ -116,4 +173,53 @@ class Payment(models.Model):
     
     unique_token = models.UUIDField(default=uuid.uuid4, unique=True)
     expiration_time = models.DateTimeField(default=default_expiration_time)
+    
+    class Meta:
+        verbose_name = 'Payment'
+        verbose_name_plural = 'Payments'
+        ordering = ['-created_at']
+        get_latest_by = 'created_at'
+        indexes = [
+            models.Index(fields=['status', 'created_at'], name='payment_status_created'),
+            models.Index(fields=['unique_token'], name='payment_token_idx'),
+            models.Index(fields=['expiration_time'], name='payment_expiration_idx'),
+            models.Index(fields=['payment_method', 'status'], name='payment_method_status_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(amount__gt=0),
+                name='payment_amount_positive'
+            ),
+            models.CheckConstraint(
+                check=models.Q(expiration_time__gt=models.F('created_at')),
+                name='payment_expiration_after_creation'
+            )
+        ]
+
+    @property
+    def is_expired(self):
+        """Check if payment is expired"""
+        return now() > self.expiration_time
+
+    @property
+    def time_remaining(self):
+        """Get remaining time before expiration"""
+        if self.is_expired:
+            return timedelta(0)
+        return self.expiration_time - now()
+
+    def mark_as_completed(self):
+        """Mark payment as completed"""
+        if self.status != self.PaymentStatus.PENDING:
+            raise ValidationError("Only pending payments can be marked as completed")
+        self.status = self.PaymentStatus.COMPLETED
+        self.save()
+
+    def mark_as_failed(self):
+        """Mark payment as failed"""
+        if self.status != self.PaymentStatus.PENDING:
+            raise ValidationError("Only pending payments can be marked as failed")
+        self.status = self.PaymentStatus.FAILED
+        self.save()
+
     

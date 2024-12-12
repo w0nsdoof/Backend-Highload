@@ -21,14 +21,4 @@ urlpatterns = [
     path('auth/', include('apps.authentication.urls')),
     
     path('api/', include(router.urls)),
-    
-    path('api/payment/<int:order_id>/', 
-         PaymentViewSet.as_view({'post': 'create'}), 
-         name='payment-create'),
-    path('api/payment/<uuid:token>/', 
-         PaymentViewSet.as_view({'get': 'confirm_payment'}), 
-         name='payment-confirm'),
-    path('api/payment/check_payments/', 
-         PaymentViewSet.as_view({'get': 'check_payments'}), 
-         name='payment-check'),
 ]

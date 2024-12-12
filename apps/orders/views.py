@@ -12,7 +12,10 @@ from django.utils.timezone import now
 from apps.carts.models import ShoppingCart, CartItem
 from apps.products.models import Product
 from .models import Order, OrderItem, Payment
-from .serializers import OrderSerializer, OrderItemSerializer, PaymentSerializer, PaymentConfirmationSerializer
+from .serializers import (
+    OrderSerializer, OrderItemSerializer, 
+    PaymentSerializer, PaymentConfirmationSerializer, PaymentMethodUpdateSerializer
+)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -28,15 +31,14 @@ class OrderViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_queryset(self):
         """
         Retrieve orders belonging to the authenticated user.
         """
-        return Order.objects.filter(user=self.request.user)
+        return Order.objects.select_related('user', 'payment').prefetch_related('items__product').filter(user=self.request.user)
 
     @action(detail=False, methods=['POST'])
-    @transaction.atomic
     def create_from_cart(self, request):
         try:
             cart, _ = ShoppingCart.objects.get_or_create(user=request.user)
@@ -158,7 +160,16 @@ class OrderViewSet(viewsets.ModelViewSet):
         """
         orders = self.get_queryset()
         serializer = self.get_serializer(orders, many=True)
-        return Response(serializer.data)
+        summary = {
+            'total_orders': orders.count(),
+            'pending_orders': orders.filter(order_status='pending').count(),
+            'completed_orders': orders.filter(order_status='delivered').count(),
+            'total_spent': sum(order.total_amount for order in orders)
+        }
+        return Response({
+            'orders': serializer.data,
+            'summary': summary
+        })
 
     @action(detail=True, methods=['POST'])
     def confirm_payment(self, request, pk=None):
@@ -182,16 +193,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"error": "Error processing payment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        orders = self.get_queryset()
-        summary = {
-            'total_orders': orders.count(),
-            'pending_orders': orders.filter(order_status='pending').count(),
-            'completed_orders': orders.filter(order_status='delivered').count(),
-            'total_spent': sum(order.total_amount for order in orders)
-        }
-        return Response(summary)
-
+          
 class PaymentViewSet(viewsets.ViewSet):
     """
     A ViewSet to handle payments for orders, including:
@@ -199,67 +201,90 @@ class PaymentViewSet(viewsets.ViewSet):
     - Sending payment links via email
     - Confirming payments
     - Marking payments as failed after expiration
+    - Changing payment methods
     """
-
-    def create(self, request, *args, **kwargs):
-        order_id = kwargs.get('order_id')
-        order = get_object_or_404(Order, id=order_id, user=request.user)
-
-        if hasattr(order, 'payment'):
-            return Response(
-                {"error": "Payment already exists for this order."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        payment = Payment.objects.create(
-            order=order,
-            amount=order.total_amount,
-            payment_method='Credit Card', #TODO: give options
-        )
-
-        unique_url = f"{request.scheme}://{request.get_host()}/api/payment/{payment.unique_token}/"
-        
-        email = EmailMessage(
-            subject="Complete Your Payment",
-            body=f"Click the link to complete your payment: {unique_url}",
-            to=[request.user.email]
-        )
-        email.send()
-
-        serializer = PaymentSerializer(payment)
-        return Response(
-            {"message": "Payment link sent to email.", "payment": serializer.data},
-            status=status.HTTP_201_CREATED
-        )
-
-    @action(detail=True, methods=['GET'], url_path=r'(?P<token>[^/.]+)')
+       
+    @action(detail=False, methods=['get'], url_path='confirm/(?P<token>[^/.]+)')
     def confirm_payment(self, request, token):
         payment = get_object_or_404(Payment, unique_token=token)
 
-        if payment.expiration_time < now():
-            payment.status = Payment.PaymentStatus.FAILED
+        if payment.is_expired:
+            time_delta = now() - payment.expiration_time
+            return Response({
+                "error": "Payment has expired",
+                "time_expired": {
+                    "seconds": int(time_delta.total_seconds()),
+                    "minutes": int(time_delta.total_seconds() / 60),
+                    "hours": int(time_delta.total_seconds() / 3600)
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            payment.mark_as_completed()
+            return Response({
+                "status": "Payment completed successfully",
+                "order_id": payment.order.id
+            })
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='check_payment/(?P<payment_id>[^/.]+)')
+    def check_payment(self, request, payment_id=None):
+        payment = get_object_or_404(Payment, pk=payment_id)
+        time_delta = payment.time_remaining if not payment.is_expired else (now() - payment.expiration_time)
+        
+        time_info = {
+            "seconds": int(time_delta.total_seconds()),
+            "minutes": int(time_delta.total_seconds() / 60),
+            "hours": int(time_delta.total_seconds() / 3600)
+        }
+        
+        return Response({
+            "order_id": payment.order.id,
+            "status": payment.status,
+            "amount": payment.amount,
+            "payment_method": payment.payment_method,
+            "is_expired": payment.is_expired,
+            "time_info": {
+                "status": "expired" if payment.is_expired else "active", 
+                "description": f"Expired {time_info['minutes']} minutes ago" if payment.is_expired else f"Active for {time_info['minutes']} more minutes",
+                "time_values": time_info
+            }
+        })
+        
+    @action(detail=True, methods=['PATCH'])
+    def change_payment_method(self, request, pk=None):  
+        try:
+            payment = get_object_or_404(Payment, pk=pk)
+            order = payment.order
+            
+            # Check if order is in a state where payment can be changed
+            if order.order_status not in ['pending', 'PAYMENT_FAILED']:
+                return Response(
+                    {'error': 'Cannot change payment method for this order status'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate the new payment method using serializer
+            serializer = PaymentMethodUpdateSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Update payment method
+            payment.payment_method = serializer.validated_data['payment_method']
             payment.save()
-            return Response({"error": "Payment link expired."}, status=status.HTTP_400_BAD_REQUEST)
 
-        payment.status = Payment.PaymentStatus.COMPLETED
-        payment.save()
-        payment.order.order_status = 'completed'
-        payment.order.save()
+            return Response({
+                'message': 'Payment method updated successfully',
+                'payment_method': payment.payment_method,
+                'order_id': order.id
+            })
 
-        return Response({"message": "Payment completed successfully."}, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['GET'])
-    def check_payments(self, request):
-        expired_payments = Payment.objects.filter(
-            status=Payment.PaymentStatus.PENDING,
-            expiration_time__lt=now()
-        )
-
-        for payment in expired_payments:
-            payment.status = Payment.PaymentStatus.FAILED
-            payment.save()
-
-        return Response(
-            {"message": f"{expired_payments.count()} payments marked as failed."},
-            status=status.HTTP_200_OK
-        )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

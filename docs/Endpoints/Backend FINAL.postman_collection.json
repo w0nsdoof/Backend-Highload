@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "6b0490bc-0975-464c-9b1c-3e5853b08b1d",
 		"name": "Backend FINAL",
+		"description": "[https://github.com/w0nsdoof/e-commerce](https://github.com/w0nsdoof/e-commerce)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "32742670"
 	},
@@ -895,140 +896,20 @@
 					"name": "Payment",
 					"item": [
 						{
-							"name": "Create",
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"product\" : 1,\r\n    \"rating\" : 9\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{BASE_URL}}/api/payment/{{order_id}}/",
-									"host": [
-										"{{BASE_URL}}"
-									],
-									"path": [
-										"api",
-										"payment",
-										"{{order_id}}",
-										""
-									],
-									"query": [
-										{
-											"key": "order",
-											"value": null,
-											"disabled": true
-										}
-									]
-								},
-								"description": "Almost useless request, cause automatically used when creating order. But i'm keeping for no reason"
-							},
-							"response": [
-								{
-									"name": "Create",
-									"originalRequest": {
-										"method": "POST",
-										"header": [],
-										"body": {
-											"mode": "raw",
-											"raw": "{\r\n    \"product\" : 1,\r\n    \"rating\" : 9\r\n}",
-											"options": {
-												"raw": {
-													"language": "json"
-												}
-											}
-										},
-										"url": {
-											"raw": "{{BASE_URL}}/api/payment/{{order_id}}/",
-											"host": [
-												"{{BASE_URL}}"
-											],
-											"path": [
-												"api",
-												"payment",
-												"{{order_id}}",
-												""
-											],
-											"query": [
-												{
-													"key": "order",
-													"value": null,
-													"disabled": true
-												}
-											]
-										}
-									},
-									"status": "Bad Request",
-									"code": 400,
-									"_postman_previewlanguage": "json",
-									"header": [
-										{
-											"key": "Date",
-											"value": "Wed, 11 Dec 2024 20:15:41 GMT"
-										},
-										{
-											"key": "Server",
-											"value": "WSGIServer/0.2 CPython/3.12.3"
-										},
-										{
-											"key": "Content-Type",
-											"value": "application/json"
-										},
-										{
-											"key": "Vary",
-											"value": "Accept"
-										},
-										{
-											"key": "Allow",
-											"value": "POST, OPTIONS"
-										},
-										{
-											"key": "X-Frame-Options",
-											"value": "DENY"
-										},
-										{
-											"key": "Content-Length",
-											"value": "50"
-										},
-										{
-											"key": "X-Content-Type-Options",
-											"value": "nosniff"
-										},
-										{
-											"key": "Referrer-Policy",
-											"value": "same-origin"
-										},
-										{
-											"key": "Cross-Origin-Opener-Policy",
-											"value": "same-origin"
-										}
-									],
-									"cookie": [],
-									"body": "{\n    \"error\": \"Payment already exists for this order.\"\n}"
-								}
-							]
-						},
-						{
 							"name": "Retrieve",
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{BASE_URL}}/api/payment/check_payments/",
+									"raw": "{{BASE_URL}}/api/payments/check_payment/{{payment_id}}",
 									"host": [
 										"{{BASE_URL}}"
 									],
 									"path": [
 										"api",
-										"payment",
-										"check_payments",
-										""
+										"payments",
+										"check_payment",
+										"{{payment_id}}"
 									],
 									"query": [
 										{
@@ -1047,15 +928,15 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{BASE_URL}}/api/payment/check_payments/",
+											"raw": "{{BASE_URL}}/api/payments/check_payment/{{payment_id}}",
 											"host": [
 												"{{BASE_URL}}"
 											],
 											"path": [
 												"api",
-												"payment",
-												"check_payments",
-												""
+												"payments",
+												"check_payment",
+												"{{payment_id}}"
 											],
 											"query": [
 												{
@@ -1072,7 +953,7 @@
 									"header": [
 										{
 											"key": "Date",
-											"value": "Wed, 11 Dec 2024 20:15:47 GMT"
+											"value": "Thu, 12 Dec 2024 08:58:39 GMT"
 										},
 										{
 											"key": "Server",
@@ -1096,7 +977,7 @@
 										},
 										{
 											"key": "Content-Length",
-											"value": "42"
+											"value": "219"
 										},
 										{
 											"key": "X-Content-Type-Options",
@@ -1112,7 +993,129 @@
 										}
 									],
 									"cookie": [],
-									"body": "{\n    \"message\": \"0 payments marked as failed.\"\n}"
+									"body": "{\n    \"order_id\": 7,\n    \"status\": \"Pending\",\n    \"amount\": 4800,\n    \"payment_method\": \"PayPal\",\n    \"is_expired\": true,\n    \"time_info\": {\n        \"status\": \"expired\",\n        \"description\": \"Expired 46 minutes ago\",\n        \"time_values\": {\n            \"seconds\": 2815,\n            \"minutes\": 46,\n            \"hours\": 0\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Change payment method",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"payment_method\": \"PayPal\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/payments/{{payment_id}}/change_payment/",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"payments",
+										"{{payment_id}}",
+										"change_payment",
+										""
+									],
+									"query": [
+										{
+											"key": "",
+											"value": null,
+											"disabled": true
+										}
+									]
+								},
+								"description": "Check and mark expired payments as failed."
+							},
+							"response": [
+								{
+									"name": "Retrieve Copy",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"payment_method\": \"PayPal\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{BASE_URL}}/api/payments/{{payment_id}}/change_payment/",
+											"host": [
+												"{{BASE_URL}}"
+											],
+											"path": [
+												"api",
+												"payments",
+												"{{payment_id}}",
+												"change_payment",
+												""
+											],
+											"query": [
+												{
+													"key": "",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Thu, 12 Dec 2024 08:58:57 GMT"
+										},
+										{
+											"key": "Server",
+											"value": "WSGIServer/0.2 CPython/3.12.3"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Vary",
+											"value": "Accept"
+										},
+										{
+											"key": "Allow",
+											"value": "PATCH, OPTIONS"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Content-Length",
+											"value": "88"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "same-origin"
+										},
+										{
+											"key": "Cross-Origin-Opener-Policy",
+											"value": "same-origin"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"message\": \"Payment method updated successfully\",\n    \"payment_method\": \"PayPal\",\n    \"order_id\": 7\n}"
 								}
 							]
 						}
@@ -1249,19 +1252,37 @@
 					]
 				},
 				{
-					"name": "Get Orders",
+					"name": "Get Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract payment_id\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const payment_id = jsonData.payment.id;\r",
+									"\r",
+									"    pm.environment.set(\"payment_id\", payment_id);\r",
+									"    console.log(\"Payment ID:\", paymentId);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/orders/",
+							"raw": "{{BASE_URL}}/api/orders/{{order_id}}",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
 								"api",
 								"orders",
-								""
+								"{{order_id}}"
 							]
 						},
 						"description": "Retrieves information about all orders done by request user. A Link standby in request used just for development sake, so there's no need to check inboxes and wait for them. They still going to emails of users."
@@ -1340,14 +1361,14 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/orders/1/cancel_order/",
+							"raw": "{{BASE_URL}}/api/orders/{{order_id}}/cancel_order/",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
 								"api",
 								"orders",
-								"1",
+								"{{order_id}}",
 								"cancel_order",
 								""
 							]

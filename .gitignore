@@ -10,6 +10,3 @@ __pycache__/
 static/
 *.sqlite3
 *.env
-
-# Change that
-docs/
