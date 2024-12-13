@@ -30,4 +30,7 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Start Gunicorn
+CMD ["python", "manage.py", "makemigrations"]
+CMD ["python", "manage.py", "migrate"]
+
 CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "config.wsgi:application"]
