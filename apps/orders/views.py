@@ -1,3 +1,6 @@
+import logging
+from multiprocessing.pool import AsyncResult
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -16,28 +19,13 @@ from .serializers import (
     OrderSerializer, OrderItemSerializer, 
     PaymentSerializer, PaymentConfirmationSerializer, PaymentMethodUpdateSerializer
 )
-
-import logging
 logger = logging.getLogger('myapp')
 
 class OrderViewSet(viewsets.ModelViewSet):
-    """
-    Comprehensive order and payment management viewset.
-    
-    Supports:
-    - Create order from cart
-    - List user orders
-    - Retrieve specific order
-    - Cancel pending orders
-    - Process payment and confirmation
-    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """
-        Retrieve orders belonging to the authenticated user.
-        """
         return Order.objects.select_related('user', 'payment').prefetch_related('items__product').filter(user=self.request.user)
 
     @action(detail=False, methods=['POST'])
@@ -201,7 +189,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             payment.save()
 
             # Update order status
-            order.order_status = 'completed'
+            order.order_status = 'shipped'
             order.save()
 
             logger.info(f"Successfully confirmed payment for order {order.id}")
@@ -210,7 +198,36 @@ class OrderViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Error processing payment for order {order.id}: {str(e)}", exc_info=True)
             return Response({"error": "Error processing payment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-          
+    
+    @action(detail=True, methods=['POST'])
+    def mark_delivered(self, request, pk=None):
+        """
+        Mark a shipped order as delivered.
+        """
+        try:
+            order = self.get_object()
+            
+            if order.order_status != 'shipped':
+                logger.warning(f"User {request.user.id} attempted to mark non-shipped order {order.id} as delivered")
+                return Response(
+                    {'error': 'Only shipped orders can be marked as delivered'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            order.order_status = 'delivered'
+            order.save()
+
+            serializer = self.get_serializer(order)
+            logger.info(f"Successfully marked order {order.id} as delivered")
+            return Response(serializer.data)
+
+        except Exception as e:
+            logger.error(f"Error marking order {pk} as delivered: {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Error marking order as delivered'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+                          
 class PaymentViewSet(viewsets.ViewSet):
     """
     A ViewSet to handle payments for orders, including:

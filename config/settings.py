@@ -213,9 +213,13 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': True,
+            'propagate': True, # Important to keep propagate True for other django logs
         },
-        'myapp': {  # Replace 'myapp' with your app name
+        'django.utils.autoreload': {
+            'level': 'INFO',  # Suppress DEBUG messages
+            'propagate': False, # Prevents propagation to the 'django' logger
+        },
+        'myapp': {  
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,
