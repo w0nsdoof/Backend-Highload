@@ -10,6 +10,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 
+from .security import LoginThrottle,ForgetPasswordThrottle
 from .models import User
 from .tasks import send_email_task
 from .serializers import (
@@ -19,6 +20,7 @@ from .serializers import (
 
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
+    throttle_classes = [LoginThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -46,7 +48,8 @@ class RegisterUserView(GenericAPIView):
 
 class ForgetPasswordView(GenericAPIView):
     serializer_class = ForgotPasswordSerializer
-
+    throttle_classes = [ForgetPasswordThrottle]
+    
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
