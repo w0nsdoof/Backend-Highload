@@ -23,4 +23,5 @@ urlpatterns = [
     path('auth/', include('apps.authentication.urls')),
     
     path('api/', include(router.urls)),
+    path('', include('django_prometheus.urls')),
 ] + debug_toolbar_urls()
