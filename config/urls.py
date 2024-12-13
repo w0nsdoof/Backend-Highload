@@ -9,7 +9,6 @@ from apps.carts.urls import router as carts_router
 from apps.orders.urls import router as orders_router
 from apps.wishlists.urls import router as wishlists_router
 from apps.reviews.urls import router as reviews_router
-from apps.orders.views import PaymentViewSet
 
 router = DefaultRouter()
 router.registry.extend(products_router.registry)

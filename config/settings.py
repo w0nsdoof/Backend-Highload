@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-import os, dotenv, dj_database_url
+import os
+import dotenv
+import dj_database_url
 
 dotenv.load_dotenv()
 
@@ -46,8 +48,8 @@ INSTALLED_APPS = [
     'rest_framework',
     "debug_toolbar",
     "django_prometheus",
-    
-    'apps.authentication',  
+
+    'apps.authentication',
     'apps.carts',
     'apps.orders',
     'apps.products',
@@ -140,11 +142,11 @@ EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL= os.getenv("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
 
 # Celery Async
-CELERY_BROKER_URL = 'redis://redis:6379/0'  
-CELERY_RESULT_BACKEND = "redis://redis:6379/1" 
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = "redis://redis:6379/1"
 
 # Redis Cache
 CACHES = {
@@ -192,13 +194,13 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': True, # Important to keep propagate True for other django logs
+            'propagate': True,  # Important to keep propagate True for other django logs
         },
         'django.utils.autoreload': {
             'level': 'INFO',  # Suppress DEBUG messages
-            'propagate': False, # Prevents propagation to the 'django' logger
+            'propagate': False,  # Prevents propagation to the 'django' logger
         },
-        'myapp': {  
+        'myapp': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,

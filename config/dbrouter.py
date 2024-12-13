@@ -1,6 +1,5 @@
 import random
 from django.db.utils import OperationalError
-from django.db import connections
 
 class ReadWriteRouter:
     def db_for_read(self, model, **hints):
@@ -18,3 +17,4 @@ class ReadWriteRouter:
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         return db == 'default'
+
