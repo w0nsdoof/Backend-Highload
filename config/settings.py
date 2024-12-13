@@ -107,20 +107,18 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'), 
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
-    },
-    'replica': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_REPLICA_HOST', 'localhost'),
-        'PORT': os.getenv('DB_REPLICA_PORT', '5433'),
     }
+    # 'replica': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.getenv('DB_NAME'),
+    #     'USER': os.getenv('DB_USER'),
+    #     'PASSWORD': os.getenv('DB_PASSWORD'),
+    #     'HOST': os.getenv('DB_REPLICA_HOST', 'localhost'),
+    #     'PORT': os.getenv('DB_REPLICA_PORT', '5433'),
+    # }
 }
 
-
-
-DATABASE_ROUTERS = ['config.dbrouter.ReadWriteRouter']
+# DATABASE_ROUTERS = ['config.dbrouter.ReadWriteRouter']
 
 
 # Password validation
@@ -164,14 +162,14 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL= os.getenv("EMAIL_HOST_USER")
 
 # Celery Async
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  
-CELERY_RESULT_BACKEND = "redis://localhost:6379/1" 
+CELERY_BROKER_URL = 'redis://redis:6379/0'  
+CELERY_RESULT_BACKEND = "redis://redis:6379/1" 
 
 # Redis Cache
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',  # Use the appropriate Redis server URL
+        'LOCATION': 'redis://redis:6379/1',  # Use the appropriate Redis server URL
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {

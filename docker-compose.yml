@@ -1,34 +1,76 @@
-version: '3.8'
 services:
-  primary_db:
-    image: postgres:14-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=final
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    restart: always
     ports:
-      - "5432:5432"
+      - "80:80"
     volumes:
-      - primary_data:/var/lib/postgresql/data
-      - ./postgres/primary/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./postgres/primary/pg_hba.conf:/etc/postgresql/pg_hba.conf
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
-
-  replica_db:
-    image: postgres:14-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=final
-    ports:
-      - "5433:5432"
-    volumes:
-      - replica_data:/var/lib/postgresql/data
-      - ./postgres/replica/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./postgres/replica/standby.signal:/tmp/standby.signal
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./static:/app/static  
     depends_on:
-      - primary_db
+      - django-1
+      - django-2
+      - django-3
+    networks:
+      - app-network
+
+  django-1: &django-config
+    container_name: django-1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/final
+    env_file:
+      - .env
+    volumes:
+      - ./apps:/app/apps  # Mount only apps directory
+      - ./config:/app/config  # Mount only config directory
+      - ./static:/app/static  # Persistent static files
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  django-2:
+    <<: *django-config
+    container_name: django-2
+
+  django-3:
+    <<: *django-config
+    container_name: django-3
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  postgres:
+    container_name: postgres
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: final
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
 volumes:
-  primary_data:
-  replica_data:
+  postgres-data:
+  static:
+
+networks:
+  app-network:
+    driver: bridge
