@@ -1,6 +1,5 @@
 import random, string
 
-from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -12,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 
 from .models import User
+from .tasks import send_email_task
 from .serializers import (
     LoginSerializer, RegisterUserSerializer,
     ForgotPasswordSerializer,ResetPasswordSerializer
@@ -62,10 +62,9 @@ class ForgetPasswordView(GenericAPIView):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
 
         reset_link = f"{request.scheme}://{request.get_host()}/auth/reset_password/{uid}/{token}"
-        send_mail(
+        send_email_task(
             'Password Reset',
             f"Use this link to reset your password: {reset_link}",
-            settings.EMAIL_HOST_USER,
             [user.email],
         )
         return Response({'message': 'Password reset email sent.'}, status=status.HTTP_200_OK)
@@ -97,10 +96,9 @@ class ResetPasswordView(GenericAPIView):
 
         # Send the new password to the user (if generated)
         if "GENERATE_RANDOM" in request.data.values():
-            send_mail(
+            send_email_task(
                 'New Password',
                 f"Your new password is: {new_password}",
-                settings.EMAIL_HOST_USER,
                 [user.email],
             )
 

@@ -5,10 +5,10 @@ from rest_framework.response import Response
 
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 
+from apps.authentication.tasks import send_email_task
 from apps.carts.models import ShoppingCart, CartItem
 from apps.products.models import Product
 from .models import Order, OrderItem, Payment
@@ -87,13 +87,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             unique_url = f"{request.scheme}://{request.get_host()}/api/payment/{payment.unique_token}/"
 
-            # Async method
-            email = EmailMessage(
+            send_email_task(
                 subject="Complete Your Payment",
-                body=f"Click the link to complete your payment: {unique_url}",
-                to=[request.user.email]
+                message=f"Click the link to complete your payment: {unique_url}",
+                recipient_list=[request.user.email]
             )
-            email.send()
 
             cart.cart_items.all().delete()
 
