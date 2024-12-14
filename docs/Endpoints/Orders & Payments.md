@@ -1,47 +1,5 @@
 # Orders
-
-## 1. Payment Create
-- **Request Type:** POST
-- **Path:** `/api/payment/{{order_id}}/`
-- **Description:** This request is used to create a payment for an order. It's not essential for order creation, but is included for completeness.
-- **Input:**
-  ```json
-  {
-    "product": 1,
-    "rating": 9
-  }
-  ```
-- **Output:**
-  ```json
-  {
-    "error": "Payment already exists for this order."
-  }
-  ```
-
-## 2. Retrieve Payments
-- **Request Type:** GET
-- **Path:** `/api/payment/check_payments/`
-- **Description:** Checks the status of payments and marks any expired payments as failed.
-- **Input:** No input required.
-- **Output:**
-  ```json
-  {
-    "message": "0 payments marked as failed."
-  }
-  ```
-## 3. Confirm Payment
-- **Request Type:** GET
-- **Path:** `/api/payment/{payment_token}/`
-- **Description:** Confirms the payment when the user visits the link sent by email. The payment_token is unique for each payment.
-- **Input:** No input required.
-- **Output:**
-```json
-{
-  "message": "Payment confirmed successfully."
-}
-```
-
-## 3. Create Order From Cart
+## 1. Create Order From Cart
 - **Request Type:** POST
 - **Path:** `/api/orders/create_from_cart/`
 - **Description:** Creates an order from the cart. Transfers items from the cart to the order. Doesn't create an order if the cart is empty.
@@ -69,11 +27,21 @@
     "payment_url": "http://127.0.0.1:8000/api/payment/1fe5317a-7be5-4ef3-8ae8-ac7d95e500b6/"
   }
   ```
-
-## 4. Get Orders
+## 2. Confirm Payment
 - **Request Type:** GET
-- **Path:** `/api/orders/`
-- **Description:** Retrieves information about all orders placed by the user. It serves for development purposes, as emails are sent with order details.
+- **Path:** `/api/payment/confirm/{payment_token}/`
+- **Description:** Confirms the payment when the user visits the link sent by email. The payment_token is unique for each payment.
+- **Input:** No input required.
+- **Output:**
+```json
+{
+  "message": "Payment confirmed successfully."
+}
+```
+## 3. Get Orders (All or Specific)
+- **Request Type:** GET
+- **Path:** `/api/orders/` or `/api/orders/{order_id}/`
+- **Description:** Retrieves information about all orders placed by the user. It serves for development purposes, as emails are sent with order details. If the order_id is provided, it returns the details of the specific order.
 - **Input:** No input required.
 - **Output:**
   ```json
@@ -98,7 +66,7 @@
   ]
   ```
 
-## 5. Cancel Order
+## 4. Cancel Order
 - **Request Type:** POST
 - **Path:** `/api/orders/{{order_id}}/cancel_order/`
 - **Description:** Cancels an order if it is still in the "pending" status.

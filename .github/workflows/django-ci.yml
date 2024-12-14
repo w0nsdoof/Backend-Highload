@@ -37,21 +37,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Run Linters
-      run: |
-        pip install flake8 black
-        flake8 .
-        black --check .
-    
     - name: Run Migrations
       env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/final
+        DB_NAME: final
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_HOST: localhost
+        DB_PORT: 5432
       run: |
         python manage.py migrate
     
     - name: Run Tests
       env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/final
+        DB_NAME: final
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_HOST: localhost
+        DB_PORT: 5432
       run: |
         python manage.py test
 

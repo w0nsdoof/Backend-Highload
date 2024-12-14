@@ -1,0 +1,98 @@
+Table Users {
+  id bigserial [pk]
+  username varchar(255) [unique]
+  email varchar(255) [unique]
+  password varchar(255)
+  first_name varchar(255)
+  last_name varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Products {
+  id bigserial [pk]
+  name varchar(255)
+  description text
+  price decimal(10, 2)
+  stock_quantity int
+  category_id int [ref: > Categories.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Categories {
+  id bigserial [pk]
+  name varchar(255)
+  parent_id int [ref: > Categories.id] // Self-referencing for subcategories
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Orders {
+  id bigserial [pk]
+  user_id int [ref: > Users.id]
+  order_status varchar(255)
+  total_amount decimal(10, 2)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table OrderItems {
+  id bigserial [pk]
+  order_id int [ref: > Orders.id]
+  product_id int [ref: > Products.id]
+  quantity int
+  price decimal(10, 2)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table ShoppingCarts {
+  id bigserial [pk]
+  user_id int [ref: > Users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table CartItems {
+  id bigserial [pk]
+  cart_id int [ref: > ShoppingCarts.id]
+  product_id int [ref: > Products.id]
+  quantity int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Payments {
+  id bigserial [pk]
+  order_id int [ref: > Orders.id]
+  payment_method varchar(255)
+  amount decimal(10, 2)
+  status varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Reviews {
+  id bigserial [pk]
+  product_id int [ref: > Products.id]
+  user_id int [ref: > Users.id]
+  rating int
+  comment text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table Wishlists {
+  id bigserial [pk]
+  user_id int [ref: > Users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table WishlistItems {
+  id bigserial [pk]
+  wishlist_id int [ref: > Wishlists.id]
+  product_id int [ref: > Products.id]
+  created_at timestamp
+}
