@@ -132,17 +132,9 @@ docker-compose up --build
 ## Troubleshooting
 - Verify Docker and Docker Compose are properly installed
 - Check that no other services are using the required ports
-- Ensure you have sufficient system resources
-
-## Security Recommendations
-- Change default passwords
-- Use strong, unique credentials
-- Consider using environment-specific configurations
 
 ## Conclusion
 The project demonstrates an advanced approach to building scalable, observable backend systems. By combining modern technologies and architectural patterns, the solution provides a robust framework for handling high-load environments while maintaining system reliability and performance.
 
-## Future Improvements
-- Implement full Continuous Integration/Continuous Deployment (CI/CD) pipeline
-- Enhanced security measures
-- Advanced monitoring and alerting configurations
+## What is left from Final requirements
+- Implementation of full (CI/CD) pipeline
