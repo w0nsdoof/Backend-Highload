@@ -59,8 +59,7 @@ This project was developed as a final exam submission for the "Backend for High-
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone [<repository-url>](https://github.com/w0nsdoof/E-commerce.git)
 ```
 
 ### 2. Create Environment Configuration
