@@ -83,3 +83,7 @@ class ForgetPasswordView(GenericAPIView):
 - Implement multi-factor authentication
 - Use environment-specific configurations
 - Conduct regular penetration testing
+
+  KPIs are measurable targets that help track the success of IS projects. They ensure that projects are achieving their goals and providing value to the business.
+
+Portfolio analysis is used to manage and organize all the projects in a company. It helps make sure that projects meet the business goals and balance risk and reward
