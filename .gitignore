@@ -11,3 +11,5 @@ __pycache__/
 static/
 *.sqlite3
 *.env
+*.log
+.coverage

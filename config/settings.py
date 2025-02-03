@@ -12,9 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-import os
-import dotenv
-import dj_database_url
+import os, dotenv, json_log_formatter
 
 dotenv.load_dotenv()
 
@@ -184,43 +182,28 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+        'json': {
+            '()': json_log_formatter.JSONFormatter,
         },
     },
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
+        'loki': {
+            'class': 'logging.handlers.HTTPHandler',
+            'host': 'http://loki:3100',
+            'url': '/loki/api/v1/push',
+            'method': 'POST',
+            'formatter': 'json',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,  # Important to keep propagate True for other django logs
-        },
-        'django.utils.autoreload': {
-            'level': 'INFO',  # Suppress DEBUG messages
-            'propagate': False,  # Prevents propagation to the 'django' logger
-        },
-        'myapp': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
+            'handlers': ['loki'],
+            'level': 'INFO',
+            'propagate': True,
         },
     },
 }
+
 
 # Optional: This is to ensure Django sessions are stored in Redis
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'

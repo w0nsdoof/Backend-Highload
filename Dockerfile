@@ -19,18 +19,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY config /app/config
 COPY apps /app/apps
 COPY manage.py /app/manage.py
+COPY entrypoint.sh /app/entrypoint.sh
 
-# Create static directory
-RUN mkdir -p /app/static
-
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
 
 # Expose port for Gunicorn
 EXPOSE 8000
 
-# Start Gunicorn
-CMD ["python", "manage.py", "makemigrations"]
-CMD ["python", "manage.py", "migrate"]
-
-CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "config.wsgi:application"]
+# Use the entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
