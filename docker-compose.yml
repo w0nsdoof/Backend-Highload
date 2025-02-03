@@ -83,12 +83,13 @@ services:
   # Loki - Log Aggregation
   loki:
     image: grafana/loki:latest
+    hostname: loki
     container_name: loki
     ports:
       - "3100:3100"
+    command: -config.file=/etc/loki/retention-config.yaml
     volumes:
-      - ./monitoring/loki-config.yml:/etc/loki/local-config.yml
-    command: -config.file=/etc/loki/local-config.yml
+      - ./monitoring/loki/config.yaml:/etc/loki/retention-config.yaml
     networks:
       - app-network
 
@@ -99,7 +100,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     networks:
@@ -112,13 +113,15 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    depends_on:
-      - prometheus
-      - loki
     networks:
       - app-network
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-polystat-panel
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - TZ=Asia/Almaty
 
 volumes:
   postgres-data:
