@@ -12,14 +12,12 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libpq-dev build-essential
 
 # Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    python -m pip install -r requirements.txt
 
 # Copy project files
-COPY config /app/config
-COPY apps /app/apps
-COPY manage.py /app/manage.py
-COPY entrypoint.sh /app/entrypoint.sh
+COPY . .
 
 # Make the entrypoint script executable
 RUN chmod +x /app/entrypoint.sh

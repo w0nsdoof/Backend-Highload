@@ -19,7 +19,7 @@ services:
   django-1: &django-config
     container_name: django-1
     build:
-      context: .
+      context: ./main/
       dockerfile: Dockerfile
     restart: always
     environment:
@@ -29,14 +29,11 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/final
     env_file:
       - .env
-    volumes:
-      - ./apps:/app/apps  
-      - ./config:/app/config  
+    volumes:  
       - ./static:/app/static  
     depends_on:
       - postgres
       - redis
-      - loki
     networks:
       - app-network
     ports:
