@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from debug_toolbar.toolbar import debug_toolbar_urls
 
@@ -20,7 +21,8 @@ router.registry.extend(reviews_router.registry)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('apps.authentication.urls')),
-    
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),    
+    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),
     path('', include('django_prometheus.urls')),
 ] + debug_toolbar_urls()
