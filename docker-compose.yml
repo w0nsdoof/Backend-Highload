@@ -29,7 +29,8 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/final
     env_file:
       - .env
-    volumes:  
+    volumes:
+      - ./logs:/var/log/django
       - ./static:/app/static  
     depends_on:
       - postgres
@@ -79,14 +80,27 @@ services:
 
   # Loki - Log Aggregation
   loki:
-    image: grafana/loki:latest
-    hostname: loki
     container_name: loki
+    image: grafana/loki:latest
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/retention-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./monitoring/loki/config.yaml:/etc/loki/retention-config.yaml
+      - ./monitoring/loki/config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    networks:
+      - app-network
+
+  # Promtail - Log Forwarder
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml
+      - ./logs:/var/log/django  # Mount your log directory
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
     networks:
       - app-network
 
@@ -124,6 +138,8 @@ volumes:
   postgres-data:
   static:
   grafana-data:
+  logs:
+  loki-data:
 
 networks:
   app-network:

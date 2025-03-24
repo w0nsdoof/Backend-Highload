@@ -7,5 +7,9 @@ python manage.py migrate
 # Collect static files
 python manage.py collectstatic --noinput
 
+# Create log directory and file if not exists
+mkdir -p /var/log/django
+touch /var/log/django/django.log
+
 # Start Gunicorn on the correct port
 exec gunicorn -w 3 -b 0.0.0.0:${GUNICORN_PORT} config.wsgi:application
