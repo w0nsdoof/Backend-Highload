@@ -26,6 +26,11 @@ INTERNAL_IPS = [
     'localhost',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.56.1:3000",
+    "http://localhost:3000", 
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,6 +43,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     "debug_toolbar",
     "django_prometheus",
+    'corsheaders',
 
     'apps.authentication',
     'apps.carts',
@@ -52,6 +58,7 @@ MIDDLEWARE = [
     'apps.authentication.security.DevelopmentSecurityHeadersMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

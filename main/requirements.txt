@@ -48,3 +48,4 @@ vine==5.1.0
 wcwidth==0.2.13
 python-json-logger
 JSON-log-formatter==1.1
+django-cors-headers==4.3.1
