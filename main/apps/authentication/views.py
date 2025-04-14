@@ -133,20 +133,3 @@ class ResetPasswordView(GenericAPIView):
         return Response({
             'message': 'Password reset successful.'
         }, status=status.HTTP_200_OK)
-
-class LogoutView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        try:
-            refresh_token = request.data.get("refresh")
-            if refresh_token:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-                logger.info(f"User {request.user.email} logged out successfully")
-                return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.error(f"Error during logout for user {request.user.email}: {str(e)}")
-            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
