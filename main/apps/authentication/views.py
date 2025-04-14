@@ -10,16 +10,26 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .security import LoginThrottle,ForgetPasswordThrottle
 from .models import User
 from .tasks import send_email_task
 from .serializers import (
     LoginSerializer, RegisterUserSerializer,
-    ForgotPasswordSerializer,ResetPasswordSerializer
+    ForgotPasswordSerializer,ResetPasswordSerializer,
+    UserSerializer
 )
 
 logger = logging.getLogger(__name__)
+
+class UserRetrieveView(GenericAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
@@ -83,7 +93,6 @@ class ForgetPasswordView(GenericAPIView):
         logger.info(f"Password reset email sent to: {email}")
         return Response({'message': 'Password reset email sent.'}, status=status.HTTP_200_OK)
 
-
 class ResetPasswordView(GenericAPIView):
     serializer_class = ResetPasswordSerializer
 
@@ -124,3 +133,20 @@ class ResetPasswordView(GenericAPIView):
         return Response({
             'message': 'Password reset successful.'
         }, status=status.HTTP_200_OK)
+
+class LogoutView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.data.get("refresh")
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                logger.info(f"User {request.user.email} logged out successfully")
+                return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error during logout for user {request.user.email}: {str(e)}")
+            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)

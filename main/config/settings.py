@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_prometheus",
     'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
 
     'apps.authentication',
     'apps.carts',
@@ -127,6 +128,8 @@ AUTH_USER_MODEL = 'authentication.User'
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 REST_FRAMEWORK = {
