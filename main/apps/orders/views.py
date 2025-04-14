@@ -1,5 +1,6 @@
 import logging
 from multiprocessing.pool import AsyncResult
+from datetime import timedelta
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -77,7 +78,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 payment_method='Credit Card'  # TODO: give options
             )
 
-            unique_url = f"{request.scheme}://{request.get_host()}/api/payment/{payment.unique_token}/"
+            unique_url = f"{request.scheme}://{request.get_host()}/api/payments/confirm/{payment.unique_token}/"
 
             send_email_task(
                 subject="Complete Your Payment",
@@ -179,17 +180,26 @@ class OrderViewSet(viewsets.ModelViewSet):
         try:
             payment = get_object_or_404(Payment, order=order)
 
-            if payment.expiration_time < now():
-                payment.status = Payment.PaymentStatus.FAILED
+            if payment.is_expired:
+                # Mark payment as expired
+                payment.status = Payment.PaymentStatus.EXPIRED
                 payment.save()
+                
+                # Cancel the order
+                order.order_status = 'cancelled'
+                order.save()
+                
                 logger.warning(f"Payment expired for order {order.id}")
-                return Response({"error": "Payment link expired."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "error": "Payment link expired.",
+                    "order_status": "cancelled"
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             payment.status = Payment.PaymentStatus.COMPLETED
             payment.save()
 
             # Update order status
-            order.order_status = 'shipped'
+            order.order_status = 'completed'
             order.save()
 
             logger.info(f"Successfully confirmed payment for order {order.id}")
@@ -244,10 +254,20 @@ class PaymentViewSet(viewsets.ViewSet):
             payment = get_object_or_404(Payment, unique_token=token)
 
             if payment.is_expired:
+                # Mark payment as expired
+                payment.status = Payment.PaymentStatus.EXPIRED
+                payment.save()
+                
+                # Cancel the order
+                order = payment.order
+                order.order_status = 'cancelled'
+                order.save()
+                
                 time_delta = now() - payment.expiration_time
                 logger.warning(f"Attempted to confirm expired payment {payment.id}")
                 return Response({
                     "error": "Payment has expired",
+                    "order_status": "cancelled",
                     "time_expired": {
                         "seconds": int(time_delta.total_seconds()),
                         "minutes": int(time_delta.total_seconds() / 60),
@@ -255,11 +275,19 @@ class PaymentViewSet(viewsets.ViewSet):
                     }
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Mark payment as completed
             payment.mark_as_completed()
+            
+            # Update order status to completed
+            order = payment.order
+            order.order_status = 'completed'
+            order.save()
+
             logger.info(f"Successfully confirmed payment {payment.id} for order {payment.order.id}")
             return Response({
                 "status": "Payment completed successfully",
-                "order_id": payment.order.id
+                "order_id": payment.order.id,
+                "order_status": order.order_status
             })
         except ValidationError as e:
             logger.warning(f"Validation error confirming payment with token {token}: {str(e)}")
