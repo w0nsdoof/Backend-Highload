@@ -12,6 +12,10 @@ class ShoppingCart(models.Model):
     
     def calculate_total(self):
         return sum(item.total_price for item in self.cart_items.all())
+    
+    @property
+    def total_items(self):
+        return self.cart_items.count()
 
     def clear(self):
         self.cart_items.all().delete()

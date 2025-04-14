@@ -35,6 +35,12 @@ class Product(models.Model):
     def is_in_stock(self):
         return self.stock_quantity > 0
     
+    def is_available(self):
+        return self.is_in_stock()
+    
+    is_available.boolean = True
+    is_available.short_description = "Available"
+    
     def average_rating(self):
         reviews = self.reviews.all()
         if not reviews.exists():

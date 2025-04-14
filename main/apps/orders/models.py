@@ -200,6 +200,8 @@ class Payment(models.Model):
     def is_expired(self):
         """Check if payment is expired"""
         return now() > self.expiration_time
+    is_expired.fget.short_description = "Expired?"
+    is_expired.fget.boolean = True
 
     @property
     def time_remaining(self):

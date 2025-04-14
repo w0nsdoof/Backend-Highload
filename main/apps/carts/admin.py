@@ -4,21 +4,21 @@ from .models import ShoppingCart, CartItem
 class CartItemInline(admin.TabularInline):
     model = CartItem
     extra = 0
-    readonly_fields = ('subtotal',)
-    fields = ('product', 'quantity', 'price', 'subtotal')
+    readonly_fields = ('total_price',)
+    fields = ('product', 'quantity', 'total_price')
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total_items', 'total_amount', 'created_at', 'updated_at')
-    list_filter = ('created_at',)
+    list_display = ('id', 'user', 'total_items', 'calculate_total', 'created_at')
+    readonly_fields = ('total_items', 'calculate_total', 'created_at', 'updated_at')
     search_fields = ('user__username', 'user__email')
-    readonly_fields = ('total_items', 'total_amount', 'created_at', 'updated_at')
-    inlines = [CartItemInline]
+    list_filter = ('created_at',)
     date_hierarchy = 'created_at'
+    inlines = [CartItemInline]
 
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cart', 'product', 'quantity', 'price', 'subtotal')
-    list_filter = ('cart__user',)
+    list_display = ('id', 'cart', 'product', 'quantity', 'total_price')
+    readonly_fields = ('total_price',)
     search_fields = ('cart__user__username', 'product__name')
-    readonly_fields = ('subtotal',)
+    list_filter = ('cart__user',)
