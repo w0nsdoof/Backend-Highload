@@ -3,9 +3,10 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.conf import settings
 
-from rest_framework import viewsets,permissions,status
+from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.decorators import action
 
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
@@ -107,3 +108,73 @@ class CategoryViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+    @action(detail=True, methods=['get'])
+    def products(self, request, pk=None):
+        """
+        Get all products in this category and its subcategories
+        """
+        category = self.get_object()
+        
+        # Get all subcategory IDs recursively
+        category_ids = [category.id]
+        
+        def get_subcategories(parent_id):
+            subcats = Category.objects.filter(parent_id=parent_id)
+            for subcat in subcats:
+                category_ids.append(subcat.id)
+                get_subcategories(subcat.id)
+        
+        # Get all subcategories recursively
+        get_subcategories(category.id)
+        
+        # Get products from this category and all subcategories
+        products = Product.objects.filter(category_id__in=category_ids)
+        
+        # Apply pagination
+        paginator = LimitOffsetPagination()
+        paginated_products = paginator.paginate_queryset(products, request)
+        
+        if paginated_products is not None:
+            serializer = ProductSerializer(paginated_products, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def subcategories(self, request, pk=None):
+        """
+        Get all subcategories (recursive) of this category
+        """
+        category = self.get_object()
+        
+        # Function to recursively get all subcategories
+        def get_all_subcategories(parent_id):
+            direct_subcats = Category.objects.filter(parent_id=parent_id)
+            all_subcats = list(direct_subcats)
+            
+            for subcat in direct_subcats:
+                all_subcats.extend(get_all_subcategories(subcat.id))
+                
+            return all_subcats
+        
+        subcategories = get_all_subcategories(category.id)
+        serializer = CategorySerializer(subcategories, many=True)
+        
+        return Response(serializer.data)
+        
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Cached retrieval of category details
+        """
+        cache_key = f'category_{kwargs["pk"]}'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return Response(cached_data)
+            
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(cache_key, response.data, settings.CACHE_TTL)
+        return response
