@@ -88,8 +88,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get_queryset(self):
-        return Category.objects.filter(parent=None)
+    def get_queryset(self):         
+        if self.action == 'list':
+            return Category.objects.filter(parent=None)
+        return Category.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
