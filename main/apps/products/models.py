@@ -24,6 +24,7 @@ class Product(models.Model):
     stock_quantity = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     
     class Meta:
         indexes = [

@@ -30,6 +30,36 @@ class UserRetrieveView(GenericAPIView):
     def get(self, request, *args, **kwargs):
         serializer = self.serializer_class(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UserProfileUpdateView(GenericAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.serializer_class(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        logger.info(f"User {user.email} updated their profile successfully")
+
+        return Response({
+            'message': 'Profile updated successfully!',
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.serializer_class(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        logger.info(f"User {user.email} partially updated their profile successfully")
+
+        return Response({
+            'message': 'Profile updated successfully!',
+            'user': serializer.data
+        }, status=status.HTTP_200_OK)
 
 class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
