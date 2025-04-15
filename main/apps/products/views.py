@@ -9,6 +9,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -86,6 +87,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return Category.objects.filter(parent=None)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
