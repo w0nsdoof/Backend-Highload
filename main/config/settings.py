@@ -3,6 +3,7 @@ from django.utils.log import DEFAULT_LOGGING
 from pathlib import Path
 from datetime import timedelta
 import os, dotenv, json_log_formatter
+from urllib.parse import urlparse
 
 dotenv.load_dotenv()
 
@@ -17,20 +18,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*"]
+# Get frontend URL from environment variable
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-INTERNAL_IPS = [
+# Parse the domain from the URL for ALLOWED_HOSTS
+frontend_domain = urlparse(FRONTEND_URL).netloc
+
+ALLOWED_HOSTS = [
+    "localhost",
     "127.0.0.1",
-    'localhost',
+    frontend_domain,
 ]
 
-CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", 
+    FRONTEND_URL,
+    "http://localhost:3000",  # Keep this for local development
 ]
+
+# Add CORS_ALLOW_ALL_ORIGINS for development if needed
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -42,7 +53,6 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'drf_spectacular',
-    "debug_toolbar",
     "django_prometheus",
     'corsheaders',
 
@@ -57,7 +67,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
-    'apps.authentication.security.DevelopmentSecurityHeadersMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -150,8 +159,8 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
 
 # Celery Async
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = "redis://redis:6379/1"
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://redis:6379/1')
 
 # Redis Cache
 CACHES = {
@@ -181,16 +190,15 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'console': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/django.log',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
