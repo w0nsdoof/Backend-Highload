@@ -5,8 +5,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from debug_toolbar.toolbar import debug_toolbar_urls
-
 from apps.products.urls import router as products_router
 from apps.carts.urls import router as carts_router
 from apps.orders.urls import router as orders_router
@@ -27,4 +25,4 @@ urlpatterns = [
     path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),
     path('', include('django_prometheus.urls')),
-] + debug_toolbar_urls() + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] 

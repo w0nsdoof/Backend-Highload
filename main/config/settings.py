@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     "django_prometheus",
     'corsheaders',
+    'storages',
 
     'apps.authentication',
     'apps.carts',
@@ -123,6 +124,15 @@ DATABASES = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Object storage
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eeur")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # <-- required for Sevalla S3
+AWS_QUERYSTRING_AUTH = False  # public files by default
 
 
 # Password validation
