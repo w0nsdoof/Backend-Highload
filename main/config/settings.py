@@ -22,14 +22,16 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Get frontend URL from environment variable
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Parse the domain from the URL for ALLOWED_HOSTS
 frontend_domain = urlparse(FRONTEND_URL).netloc
-
+backend_domain = urlparse(BACKEND_URL).netloc
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     frontend_domain,
+    backend_domain,
 ]
 
 CORS_ALLOW_CREDENTIALS = True
